@@ -1,37 +1,42 @@
+import streamlit as st
 import pandas as pd
-# Load the dataset
-df = pd.read_csv('country_wise_latest.csv')
+import matplotlib.pyplot as plt
 
-# Data preprocessing
-df['ObservationDate'] = pd.to_datetime(df['ObservationDate'])
-df = df.rename(columns={'Country/Region': 'Country'})
+# Load raw COVID-19 data
+df = pd.read_csv("country_wise_latest.csv")
 
-# Sidebar filters
-st.sidebar.header("Filter Data")
-country = st.sidebar.selectbox("Select Country", df['Country'].unique())
-filtered_df = df[df['Country'] == country]
+# Streamlit Title
+st.title("COVID-19 Dashboard")
 
-st.title(f"COVID-19 Dashboard for {country}")
+# Sidebar Country Selection
+country = st.sidebar.selectbox("Select a Country", df["Country/Region"].unique())
 
-# --- LINE CHART: Cases Over Time ---
-st.subheader("Confirmed Cases Over Time")
-line_data = filtered_df.groupby('ObservationDate')['Confirmed'].sum().reset_index()
-st.line_chart(line_data.rename(columns={'ObservationDate': 'index'}).set_index('index'))
+# Filter data by country
+country_data = df[df["Country/Region"] == country]
 
-# --- BAR CHART: Latest Day Summary ---
-st.subheader("Latest Day Case Summary")
-latest_date = filtered_df['ObservationDate'].max()
-latest_data = filtered_df[filtered_df['ObservationDate'] == latest_date].groupby('Country').sum()
-latest_country_data = latest_data.loc[country][['Confirmed', 'Deaths', 'Recovered']]
+# Display raw data
+st.subheader("Raw Data")
+st.dataframe(country_data)
 
-st.bar_chart(latest_country_data)
+# Line Chart - Confirmed cases over time
+st.subheader("Confirmed Cases Over Time (Line Chart)")
+line_chart_data = country_data.groupby("New cases")["Confirmed"].sum()
+st.line_chart(line_chart_data)
 
-# --- PIE CHART: Proportions ---
-st.subheader("Proportions on Latest Date")
-fig, ax = plt.subplots()
-ax.pie(latest_country_data, labels=latest_country_data.index, autopct='%1.1f%%', startangle=90)
-ax.axis('equal')  # Equal aspect ratio ensures pie chart is circular
-st.pyplot(fig)
+# Bar Chart - Deaths, Recovered, Confirmed on the latest day
+st.subheader("Latest Day Summary (Bar Chart)")
+latest_date = country_data["New cases"].max()
+latest_stats = country_data[country_data["New cases"] == latest_date]
 
-# Footer
-st.markdown("Data Source: Kaggle - COVID-19 Dataset")
+if not latest_stats.empty:
+    totals = latest_stats[["Confirmed", "Deaths", "Recovered"]].sum()
+    st.bar_chart(totals)
+
+    # Pie Chart
+    st.subheader("Proportions (Pie Chart)")
+    fig, ax = plt.subplots()
+    ax.pie(totals, labels=totals.index, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')
+    st.pyplot(fig)
+else:
+    st.warning("No data available for the latest date.")

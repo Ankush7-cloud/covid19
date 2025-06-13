@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Load raw COVID-19 data
 df = pd.read_csv("country_wise_latest.csv")

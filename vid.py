@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the dataset
-df = pd.read_csv('covid_19_data.csv')
+df = pd.read_csv('country_wise_latest.csv')
 
 # Data preprocessing
 df['ObservationDate'] = pd.to_datetime(df['ObservationDate'])

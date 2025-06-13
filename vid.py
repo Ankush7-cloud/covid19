@@ -1,36 +1,36 @@
 import streamlit as st
 import pandas as pd
 
-# Load CSV
+# Load the dataset
 df = pd.read_csv("country_wise_latest.csv")
 
-st.title("🌍 COVID-19 Dashboard (Country-Wise)")
+st.set_page_config(layout="wide")
+st.title("🌐 COVID-19 Country-wise Dashboard")
 
-# Sidebar: select country
-country = st.sidebar.selectbox("Select a Country", df["Country/Region"].dropna().unique())
+# Sidebar: Country selection
+country_list = df["Country/Region"].dropna().unique()
+selected_country = st.sidebar.selectbox("Select a Country", sorted(country_list))
 
-# Filter data
-data = df[df["Country/Region"] == country]
+# Filter for selected country
+country_data = df[df["Country/Region"] == selected_country]
 
-st.subheader(f"📋 Data for {country}")
-st.write(data)
+# Show raw data
+st.subheader(f"📋 Raw Data for {selected_country}")
+st.dataframe(country_data)
 
-# Bar Chart: Confirmed, Deaths, Recovered, Active
-st.subheader("📊 Case Summary (Bar Chart)")
-cols = ['Confirmed', 'Deaths', 'Recovered', 'Active']
-case_data = data[cols].T  # Transpose for bar chart
-st.bar_chart(case_data)
+# Bar Chart - Summary
+st.subheader("📊 Summary: Confirmed, Deaths, Recovered, Active")
+cols = ["Confirmed", "Deaths", "Recovered", "Active"]
+chart_data = country_data[cols].T.rename(columns={country_data.index[0]: selected_country})
+st.bar_chart(chart_data)
 
-# Line Chart: just duplicating bar data over index (simulate time)
-st.subheader("📈 Simulated Trend (Line Chart)")
-st.line_chart(case_data)
+# Line Chart - Simulated Trend
+st.subheader("📈 Simulated Trend (Static Data)")
+st.line_chart(chart_data)
 
-# Pie Chart
-st.subheader("🥧 Case Distribution (Pie Chart)")
-fig, ax = plt.subplots()
-ax.pie(data[cols].values.flatten(), labels=cols, autopct="%1.1f%%", startangle=90)
-ax.axis('equal')
-st.pyplot(fig)
+# Pie Chart replacement using streamlit's area chart (optional)
+st.subheader("📐 Area Chart as Pie Alternative")
+st.area_chart(chart_data)
 
 st.markdown("---")
-st.caption("Data Source: Kaggle | COVID-19 Country Wise Latest")
+st.caption("Data Source: Kaggle COVID-19 dataset")

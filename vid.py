@@ -1,41 +1,37 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
-# Load raw COVID-19 data
+# Load CSV
 df = pd.read_csv("country_wise_latest.csv")
 
-# Streamlit Title
-st.title("COVID-19 Dashboard")
+st.title("🌍 COVID-19 Dashboard (Country-Wise)")
 
-# Sidebar Country Selection
-country = st.sidebar.selectbox("Select a Country", df["Country/Region"].unique())
+# Sidebar: select country
+country = st.sidebar.selectbox("Select a Country", df["Country/Region"].dropna().unique())
 
-# Filter data by country
-country_data = df[df["Country/Region"] == country]
+# Filter data
+data = df[df["Country/Region"] == country]
 
-# Display raw data
-st.subheader("Raw Data")
-st.dataframe(country_data)
+st.subheader(f"📋 Data for {country}")
+st.write(data)
 
-# Line Chart - Confirmed cases over time
-st.subheader("Confirmed Cases Over Time (Line Chart)")
-line_chart_data = country_data.groupby("New cases")["Confirmed"].sum()
-st.line_chart(line_chart_data)
+# Bar Chart: Confirmed, Deaths, Recovered, Active
+st.subheader("📊 Case Summary (Bar Chart)")
+cols = ['Confirmed', 'Deaths', 'Recovered', 'Active']
+case_data = data[cols].T  # Transpose for bar chart
+st.bar_chart(case_data)
 
-# Bar Chart - Deaths, Recovered, Confirmed on the latest day
-st.subheader("Latest Day Summary (Bar Chart)")
-latest_date = country_data["New cases"].max()
-latest_stats = country_data[country_data["New cases"] == latest_date]
+# Line Chart: just duplicating bar data over index (simulate time)
+st.subheader("📈 Simulated Trend (Line Chart)")
+st.line_chart(case_data)
 
-if not latest_stats.empty:
-    totals = latest_stats[["Confirmed", "Deaths", "Recovered"]].sum()
-    st.bar_chart(totals)
+# Pie Chart
+st.subheader("🥧 Case Distribution (Pie Chart)")
+fig, ax = plt.subplots()
+ax.pie(data[cols].values.flatten(), labels=cols, autopct="%1.1f%%", startangle=90)
+ax.axis('equal')
+st.pyplot(fig)
 
-    # Pie Chart
-    st.subheader("Proportions (Pie Chart)")
-    fig, ax = plt.subplots()
-    ax.pie(totals, labels=totals.index, autopct='%1.1f%%', startangle=90)
-    ax.axis('equal')
-    st.pyplot(fig)
-else:
-    st.warning("No data available for the latest date.")
+st.markdown("---")
+st.caption("Data Source: Kaggle | COVID-19 Country Wise Latest")
